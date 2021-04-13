@@ -1,3 +1,10 @@
+:root{
+    --blueGradiant : radial-gradient(circle, #014ead 52%, #071025 100%);
+    --redGradient: radial-gradient(circle, #ed0e28 52%, #800416 100%);
+    --greyGradient: radial-gradient(circle, #e6e6e6 50%, #696969 100%);
+    --grey: #242424;
+}
+
 body{
     font-family: 'Raleway', sans-serif;
 }
@@ -5,3 +12,46 @@ body{
 h1, h2, h3, h4, h5, h6{
     font-family: 'Amatic SC', cursive;
 }
+
+
+/*----------------------------------------------*/
+  .flip-card {
+    background-color: transparent;
+    width: 300px;
+    height: 300px;
+    perspective: 1000px;
+  }
+  
+  .flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+  }
+  
+  .flip-card:hover .flip-card-inner {
+    transform: rotateY(180deg);
+  }
+  
+  .flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  
+  .flip-card-front {
+    background-color: #bbb;
+    color: black;
+  }
+  
+  .flip-card-back {
+    background-color: #2980b9;
+    color: white;
+    transform: rotateY(180deg);
+  }
+  /*----------------------------------------------*/
