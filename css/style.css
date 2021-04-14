@@ -1,7 +1,29 @@
+:root{
+    --grey: #242424;
+    --redGradient: radial-gradient(circle, #ed0e28 50%, #800416 100%);
+    --blueGradient: radial-gradient(circle, #014ead 50%, #071025 100%);
+    --greyGradient: radial-gradient(circle, #e6e6e6 50%, #696969 100%);
+}
+
 body{
     font-family: 'Raleway', sans-serif;
 }
 
 h1, h2, h3, h4, h5, h6{
     font-family: 'Amatic SC', cursive;
+}
+
+header{
+    background-color: var(--grey);
+    color: #fff;
+}
+
+.flip-card-inner{
+    background-color: #800416;
+    height: 200px;
+}
+
+.card{
+    display: inline-block;
+    background-color: aquamarine;
 }
