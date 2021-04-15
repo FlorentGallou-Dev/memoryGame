@@ -33,27 +33,35 @@
   <meta name="theme-color" content="#fafafa">
 </head>
 
-<body>
-  <header></header>
-  <main>
-    <div class="flip-card">
-      <div class="flip-card-inner">
-        <div class="flip-card-front">
-          <img src="img_avatar.png" alt="Avatar" style="width:300px;height:300px;">
+<body class="vh-100">
+  <header class="container-fluid vh-17">
+    <section class="row p-3">
+      <article class="row col-8 col-sm-7 col-xl-9 p-0 m-0">
+        <div class="row col-12 p-0 m-0">
+          <div class="row col-12 col-sm-10 col-xl-5 justify-content-center align-items-center p-0 m-0">
+            <div class="col-3 p-0 m-0">
+              <img class="img-fluid" src="img/logo.png" alt="Logo du jeu Memory">          
+            </div>
+            <div class="col-9">
+              <h1>Memory game</h1>
+            </div>
+          </div>
         </div>
-        <div class="flip-card-back">
-          <h1>John Doe</h1> 
-          <p>Architect & Engineer</p> 
-          <p>We love that guy</p>
+        <div class="col-12 d-none d-xl-block">
+          <p>Bienvenue dans le jeu, cliquez sur une carte pour la retourner, trouvez les paires de même couleur.<br>Bon jeu !</p>
         </div>
-      </div>
-    </div>
+      </article>
+      <article id="timerDiv" class="row col-4 col-sm-5 col-xl-3 p-0 m-0">
+
+      </article>
+    </section>
+  </header>
+  <main class="container-fluid justify-content-center align-items-center p-0 m-0">
+    <section id="cardsContainer" class="d-flex flex-wrap justify-content-center p-0 m-0">
+
+    </section>
   </main>
-  <footer></footer>
-
-
-  <!-- Add your site or application content here -->
-  <p>Hello world! This is HTML5 Boilerplate.</p>
+ 
   <script src="js/vendor/modernizr-3.11.2.min.js"></script>
   <script src="js/plugins.js"></script>
   <script src="js/main.js"></script>
