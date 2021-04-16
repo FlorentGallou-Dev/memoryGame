@@ -41,6 +41,9 @@ const pairsFaces = [
         }
 ];
 
+let checkPairTab = [];
+let numberOfPairsDone = 0;
+
 /*~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 //Function that return a card in HTML element injecting back face picture set of pairs
@@ -124,6 +127,36 @@ function resizeGame(height, width){
     }
 }
 
+function hoverAnimationOn(element){
+    element.style.boxShadow = "0px 0px 10px 2px var(--grey)";
+}
+
+function hoverAnimationOff(element){
+    element.style.boxShadow = "0px 0px 0px 0px transparent";
+}
+
+function flipedCardVerification(element, arrayOfClickedImages){
+    if(arrayOfClickedImages.length < 2){
+        return flipCardOn(element);
+    } else if(arrayOfClickedImages[0] === arrayOfClickedImages[1]){
+            return 1;
+    } else{
+        flipCardOff(element)
+    }
+}
+
+function flipCardOn(element){
+    let cardInThisElement = element.getElementsByClassName("cardBack");
+    
+    element.style.transform = "rotateY(180deg)";
+    //return the face image name in class element
+    return cardInThisElement[0].classList[1];
+}
+
+function flipCardOff(element){
+    element.style.transform = "none";
+}
+
 /*~~~~~~~~~~~~~~~~~~~~~~~~~ EXECUTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 randomSetCards(cardsContainer);
@@ -140,6 +173,33 @@ window.addEventListener("orientationchange", function(event) {
     resizeGame(viewportWidth, viewportHeight);
 });
 
+let flipCardInnerList = document.getElementsByClassName("flip-card-inner");
+
+for(let flipCardInner of flipCardInnerList) {
+    flipCardInner.addEventListener("mouseenter", function() {
+        //If the card is not already fliped
+        if(getComputedStyle(this,null).getPropertyValue("transform") === "none"){
+             hoverAnimationOn(this);
+        }
+    })
+
+    flipCardInner.addEventListener("mouseleave", function() {
+        hoverAnimationOff(this);
+    })
+
+    flipCardInner.addEventListener("click", function() {
+        let response = flipedCardVerification(this, checkPairTab);
+        if(response === 1){
+            numberOfPairsDone++;
+            console.log(numberOfPairsDone);
+        }else{
+            checkPairTab.push(response);
+            console.log(checkPairTab);
+        }
+    })
+}
+
+
 /*Reste à faire :
     - déclancher le hover en JS seulement sur les cartes non retournées,
     - déclancher le retournement de la carte en JS si on clique dessus,
@@ -148,3 +208,4 @@ window.addEventListener("orientationchange", function(event) {
     - créer bouton commencer et restart,
     - créer timer.
 */ 
+
