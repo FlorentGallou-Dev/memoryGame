@@ -126,35 +126,38 @@ function resizeGame(height, width){
         }
     }
 }
-
+//Function to animate the elevation up of the element we are over
 function hoverAnimationOn(element){
     element.style.boxShadow = "0px 0px 10px 2px var(--grey)";
 }
-
+//Function to animate the elevation down of the element we are leaving
 function hoverAnimationOff(element){
     element.style.boxShadow = "0px 0px 0px 0px transparent";
 }
-
+//Function to check if we can flip the card we have clicked on
 function flipedCardVerification(element, arrayOfClickedImages){
+    //Check if there is the is not 2 cards already fliped
     if(arrayOfClickedImages.length < 2){
         return flipCardOn(element);
-    } else if(arrayOfClickedImages[0] === arrayOfClickedImages[1]){
-            return 1;
     } else{
-        flipCardOff(element)
+        //if 2 cards are already fliped or none
+        return "impossibleToPlay";
     }
 }
-
+//Function to flip the actual card and marked it as fliped
 function flipCardOn(element){
+    //Get the cardBack element from the actual element
     let cardInThisElement = element.getElementsByClassName("cardBack");
-    
+    //Rotate the element
     element.style.transform = "rotateY(180deg)";
+    //Add the fliped class to the cardBack
+    cardInThisElement[0].classList.add("fliped");
     //return the face image name in class element
     return cardInThisElement[0].classList[1];
 }
-
+//Function to flip back the actual card
 function flipCardOff(element){
-    element.style.transform = "none";
+    element.style.transform = "rotateY(-180deg)";
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~ EXECUTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -176,33 +179,70 @@ window.addEventListener("orientationchange", function(event) {
 let flipCardInnerList = document.getElementsByClassName("flip-card-inner");
 
 for(let flipCardInner of flipCardInnerList) {
+    let response = false;
+    //What happens if the mouse passes hover a card
     flipCardInner.addEventListener("mouseenter", function() {
         //If the card is not already fliped
-        if(getComputedStyle(this,null).getPropertyValue("transform") === "none"){
+        if(getComputedStyle(this,null).getPropertyValue("transform") === "none" || getComputedStyle(this,null).getPropertyValue("transform") === "rotateY(-180deg)"){
              hoverAnimationOn(this);
         }
     })
 
+/*REPRENDRE A PARTIR DU CONTROLE DE SORTIE DE LA CARTE POUR VALIDER LA PAIRE OU PAS*/
+
+    //What happens if the mouse leaves a card
     flipCardInner.addEventListener("mouseleave", function() {
+        //Manage the over elevation animation
         hoverAnimationOff(this);
+        //Make afresh list of fliped cards
+        let flipedCard = document.getElementsByClassName("fliped");
+
+        //Checks if there is two values in the pair array and if they match
+        if(checkPairTab.length === 2 && checkPairTab[0] === checkPairTab[1]){
+            alert("Bon point");
+            //Change the classes to mark the cards as good
+            for(let cardFliped of flipedCard){
+                cardFliped.classList.remove("fliped");
+                cardFliped.classList.add("goodPair");
+            }
+            //Empty the pair array
+            checkPairTab = [];
+            //Add a point it the number of pair var
+            numberOfPairsDone++;
+            console.log("Nombre de paires faites : " + numberOfPairsDone);
+        }//Checks if there is two elements in the pair array but differents images.
+        else if(checkPairTab.length === 2 && checkPairTab[0] !== checkPairTab[1]){
+            alert("Mauvaise comparaison");
+            //Flip back the cards
+            for(let cardFliped of flipedCard){
+                flipCardOff(cardFliped);
+                cardFliped.classList.remove("fliped");
+            }
+            //Empty the pair array
+            checkPairTab = [];
+        }
+        
+        //Check if response get the impossibleToPlay answer
+        if(response === "impossibleToPlay"){
+            console.log("Do nothing");
+        }//finaly this is what appends if response sends back the image of the card
+        else if(response !== false){
+            //add the card image in the pair array
+            checkPairTab.push(response);
+        }
+        //After all those checkings, reset the response so we can use it again
+        response = false;
     })
 
+    //What happens if the mouse clicks a card
     flipCardInner.addEventListener("click", function() {
-        let response = flipedCardVerification(this, checkPairTab);
-        if(response === 1){
-            numberOfPairsDone++;
-            console.log(numberOfPairsDone);
-        }else{
-            checkPairTab.push(response);
-            console.log(checkPairTab);
-        }
+        //Will get a response, get the class of the image on the back of the card OR "impossibleToPlay" if the pairs doent match and 2 cards are fliped
+        response = flipedCardVerification(this, checkPairTab);
     })
 }
 
 
 /*Reste à faire :
-    - déclancher le hover en JS seulement sur les cartes non retournées,
-    - déclancher le retournement de la carte en JS si on clique dessus,
     - déclancher un controle si deux cartes sont retournées + bloquer action du joueur,
     - controler le nombre de paires trouvées pour fin du jeu,
     - créer bouton commencer et restart,

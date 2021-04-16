@@ -35,10 +35,6 @@ main{
   width: 100%;
 }
 
-/* .flip-card:hover .flip-card-inner {
-  transform: rotateY(180deg);
-} */
-
 .flip-card-inner {
   position: relative;
   height: 100%;
