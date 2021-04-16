@@ -41,8 +41,8 @@ const pairsFaces = [
         }
 ];
 
-let checkPairTab = [];
-let numberOfPairsDone = 0;
+let checkPairTab = []; //temp array to receive the pair image for control
+let numberOfPairsDone = 0; //To count the number of pair found
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
@@ -157,7 +157,16 @@ function flipCardOn(element){
 }
 //Function to flip back the actual card
 function flipCardOff(element){
-    element.style.transform = "rotateY(-180deg)";
+    element.style.transform = "rotateY(0deg)";
+}
+
+//function to manage button display mode -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function buttonWillAppear(){
+    let sectionToReceiveButton = document.createElement("SECTION");
+    let cardsContainer = document.getElementById("cardsContainer");
+
+    cardsContainer.classList.add("d-none");
+
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~ EXECUTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -183,45 +192,16 @@ for(let flipCardInner of flipCardInnerList) {
     //What happens if the mouse passes hover a card
     flipCardInner.addEventListener("mouseenter", function() {
         //If the card is not already fliped
-        if(getComputedStyle(this,null).getPropertyValue("transform") === "none" || getComputedStyle(this,null).getPropertyValue("transform") === "rotateY(-180deg)"){
+        if(getComputedStyle(this,null).getPropertyValue("transform") === "none" || getComputedStyle(this,null).getPropertyValue("transform") === "rotateY(0deg)"){
              hoverAnimationOn(this);
         }
     })
-
-/*REPRENDRE A PARTIR DU CONTROLE DE SORTIE DE LA CARTE POUR VALIDER LA PAIRE OU PAS*/
 
     //What happens if the mouse leaves a card
     flipCardInner.addEventListener("mouseleave", function() {
         //Manage the over elevation animation
         hoverAnimationOff(this);
-        //Make afresh list of fliped cards
-        let flipedCard = document.getElementsByClassName("fliped");
 
-        //Checks if there is two values in the pair array and if they match
-        if(checkPairTab.length === 2 && checkPairTab[0] === checkPairTab[1]){
-            alert("Bon point");
-            //Change the classes to mark the cards as good
-            for(let cardFliped of flipedCard){
-                cardFliped.classList.remove("fliped");
-                cardFliped.classList.add("goodPair");
-            }
-            //Empty the pair array
-            checkPairTab = [];
-            //Add a point it the number of pair var
-            numberOfPairsDone++;
-            console.log("Nombre de paires faites : " + numberOfPairsDone);
-        }//Checks if there is two elements in the pair array but differents images.
-        else if(checkPairTab.length === 2 && checkPairTab[0] !== checkPairTab[1]){
-            alert("Mauvaise comparaison");
-            //Flip back the cards
-            for(let cardFliped of flipedCard){
-                flipCardOff(cardFliped);
-                cardFliped.classList.remove("fliped");
-            }
-            //Empty the pair array
-            checkPairTab = [];
-        }
-        
         //Check if response get the impossibleToPlay answer
         if(response === "impossibleToPlay"){
             console.log("Do nothing");
@@ -230,20 +210,58 @@ for(let flipCardInner of flipCardInnerList) {
             //add the card image in the pair array
             checkPairTab.push(response);
         }
+
+        //Checks if there is two values in the pair array and if they match
+        if(checkPairTab.length === 2 && checkPairTab[0] === checkPairTab[1]){
+
+            //Change the classes to mark the cards as good
+            for(let card of flipCardInnerList){
+                if(card.getElementsByClassName("cardBack")[0].classList.contains("fliped")){
+                    card.getElementsByClassName("cardBack")[0].classList.remove("fliped");
+                    card.getElementsByClassName("cardBack")[0].classList.add("goodPair");
+                }
+            }
+
+            //Empty the pair array
+            checkPairTab = [];
+            //Add a point it the number of pair var
+            numberOfPairsDone++;
+        }//Checks if there is two elements in the pair array but differents images.
+        else if(checkPairTab.length === 2 && checkPairTab[0] !== checkPairTab[1]){
+            //List of all flip-card-inner div
+            let flipCardInner = document.getElementsByClassName("flip-card-inner");
+            //Loop in the flip-card-inner div
+            for(let card of flipCardInner){
+                //check if the cardBack div of the actual flip-card-inner div has fliped as class
+                if(card.getElementsByClassName("cardBack")[0].classList.contains("fliped")){
+                    //Flip back the cards
+                    flipCardOff(card);
+                    //remove the fliped class from the cardBack div of the actual flip-card-inner div
+                    card.getElementsByClassName("cardBack")[0].classList.remove("fliped");
+                }
+                checkPairTab = [];
+            }
+        }
+        
         //After all those checkings, reset the response so we can use it again
         response = false;
     })
 
     //What happens if the mouse clicks a card
     flipCardInner.addEventListener("click", function() {
-        //Will get a response, get the class of the image on the back of the card OR "impossibleToPlay" if the pairs doent match and 2 cards are fliped
-        response = flipedCardVerification(this, checkPairTab);
+        
+        if(!this.getElementsByClassName("cardBack")[0].classList.contains("fliped") && !this.getElementsByClassName("cardBack")[0].classList.contains("goodPair") ){
+            response = flipedCardVerification(this, checkPairTab);
+            if(numberOfPairsDone === 7){ //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            }
+        }
+
     })
 }
 
 
 /*Reste à faire :
-    - déclancher un controle si deux cartes sont retournées + bloquer action du joueur,
     - controler le nombre de paires trouvées pour fin du jeu,
     - créer bouton commencer et restart,
     - créer timer.
