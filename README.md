@@ -14,3 +14,4 @@ Projet évalué de création d'une application web responsive et dynamique en ut
 > 6. Controle du résultat en sortie de carte presque terminé, dernières vérifications des points à faire.
 > 7. pairs retournées, controlées, comptées jusqu'à toutes paires retournées.
 > 8. Jeu gagné, message de fin avec bouton restart, ajouté bouton commencer la partie aussi.
+> 9. Chrono inséré à partir d'un système de chronometre existant. Il ne me reste plus qu'à comparer les scores passé à l'actuel pour l message de victoire.

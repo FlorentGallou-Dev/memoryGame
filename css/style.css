@@ -6,6 +6,7 @@
 }
 
 body{
+    overflow: hidden;
     font-family: 'Raleway', sans-serif;
 }
 
@@ -69,4 +70,15 @@ main{
   font-size: 2rem;
   font-weight: bold;
   color: var(--grey);
+}
+
+.btn-memory{
+    color: #fff;
+    background-color: #8153ED;
+    border-color: #8153ED;
+}
+
+.btn:hover {
+  color: #BA84F3;
+  font-weight: bold;
 }
