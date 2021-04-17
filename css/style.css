@@ -64,3 +64,9 @@ main{
   color: var(--grey);
   transform: rotateY(180deg);
 }
+
+#buttonContainer p{
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--grey);
+}

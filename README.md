@@ -13,3 +13,4 @@ Projet évalué de création d'une application web responsive et dynamique en ut
 > 5. Creation effet soulevement carte au survol seulement si non retournée, retournement 2 cartes seulement stockage valeur face dans tableau pour controle.
 > 6. Controle du résultat en sortie de carte presque terminé, dernières vérifications des points à faire.
 > 7. pairs retournées, controlées, comptées jusqu'à toutes paires retournées.
+> 8. Jeu gagné, message de fin avec bouton restart, ajouté bouton commencer la partie aussi.

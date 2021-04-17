@@ -2,8 +2,10 @@
 //HTML element selectors
 let main = document.querySelector("main");
 let header = document.querySelector("header");
+let heightMain = 0;
 //selector of the cards container
 let cardsContainer = document.getElementById("cardsContainer");
+let buttonAction = document.getElementById("buttonAction");
 
 //To set size of th main container and so the cards size we need to get viewports dimensions
 let viewportWidth = window.innerWidth;
@@ -160,13 +162,44 @@ function flipCardOff(element){
     element.style.transform = "rotateY(0deg)";
 }
 
-//function to manage button display mode -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-function buttonWillAppear(){
+//function to manage button display mode
+function buttonWillAppear(textButton, textSuccess, heightSendt){
+    //create HTML elements to make a section
     let sectionToReceiveButton = document.createElement("SECTION");
-    let cardsContainer = document.getElementById("cardsContainer");
+    sectionToReceiveButton.classList.add("row", "p-0", "m-0")
+    sectionToReceiveButton.id = "buttonContainer";
+    sectionToReceiveButton.style.height = heightSendt + "px";
+    //create HTML elements to make a sub section
+    let divRowToCenterElements = document.createElement("DIV");
+    divRowToCenterElements.classList.add("row", "col-12", "adjust-content-center", "align-items-center", "p-0", "m-0")
+    //create HTML elements to make a div to contain centered text and link
+    let divToContainLink = document.createElement("DIV");
+    divToContainLink.classList.add("text-center", "col-12");
+    //create HTML elements to make a text over the link
+    let textDisplayedOverLink = document.createElement('P');
+    textDisplayedOverLink.innerText = textSuccess;
+    //create HTML elements to make a link
+    let link = document.createElement("A");
+    link.classList.add("btn", "btn-success", "fs-1", "py-sm-1rem", "px-sm-2rem");
+    link.id = "buttonAction";
+    link.innerText = textButton.toUpperCase();
 
+    //Inject HTML elements as parent/child in the right order
+    divToContainLink.appendChild(textDisplayedOverLink);
+    divToContainLink.appendChild(link);
+    divRowToCenterElements.appendChild(divToContainLink);
+    sectionToReceiveButton.appendChild(divRowToCenterElements);
+
+    //Get the main div
+    let mainContainer = document.querySelector("main");
+    //Hide the cards section
     cardsContainer.classList.add("d-none");
-
+    //Inject the button section in the main
+    mainContainer.appendChild(sectionToReceiveButton);
+    //set the section height
+    
+    //finaly get the a element in the var
+    buttonAction = document.getElementById("buttonAction");
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~ EXECUTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -178,6 +211,11 @@ let singleCardContainerList = document.getElementsByClassName("singleCardContain
 //Order the cards when the page is loaded to fully get the header size and so calculate the main height properly
 window.addEventListener('load', function () {
     resizeGame(viewportHeight, viewportWidth);
+    buttonWillAppear("play", "", heightMain);
+    buttonAction.addEventListener("click", function() {
+        document.getElementById("cardsContainer").classList.remove("d-none");
+        document.getElementById("buttonContainer").parentNode.removeChild(document.getElementById("buttonContainer"));
+    });
 });
 
 window.addEventListener("orientationchange", function(event) {
@@ -226,6 +264,17 @@ for(let flipCardInner of flipCardInnerList) {
             checkPairTab = [];
             //Add a point it the number of pair var
             numberOfPairsDone++;
+
+            if(numberOfPairsDone === 1){ //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                //get the viewport height without the header height after the page is fully loaded
+                buttonWillAppear("restart", "Félicitations, tu as gangé. Une autre partie ?", parseInt(cardsContainer.offsetHeight));
+                buttonAction.addEventListener("click", function() {
+                    cardsContainer.innerHTML = "";
+                    randomSetCards(cardsContainer);
+                    document.getElementById("cardsContainer").classList.remove("d-none");
+                    document.getElementById("buttonContainer").parentNode.removeChild(document.getElementById("buttonContainer"));
+                });
+            }
         }//Checks if there is two elements in the pair array but differents images.
         else if(checkPairTab.length === 2 && checkPairTab[0] !== checkPairTab[1]){
             //List of all flip-card-inner div
@@ -252,18 +301,13 @@ for(let flipCardInner of flipCardInnerList) {
         
         if(!this.getElementsByClassName("cardBack")[0].classList.contains("fliped") && !this.getElementsByClassName("cardBack")[0].classList.contains("goodPair") ){
             response = flipedCardVerification(this, checkPairTab);
-            if(numberOfPairsDone === 7){ //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-            }
         }
 
     })
 }
 
-
 /*Reste à faire :
-    - controler le nombre de paires trouvées pour fin du jeu,
-    - créer bouton commencer et restart,
+    - sizing des éléments après chargement de la page
     - créer timer.
 */ 
 
