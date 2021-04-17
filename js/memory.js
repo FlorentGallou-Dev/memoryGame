@@ -142,7 +142,7 @@ function setsSizeToElementsWhenPageLoaded(){
     } else{//Else wait the page to fully load so we can get the true header height
         window.addEventListener('load', function () {
             resizeGame(viewportHeight, viewportWidth);
-            buttonWillAppear("play", "", heightMain);
+            buttonWillAppear("play", "", heightMain, "noIma");
             buttonAction.addEventListener("click", function() {
                 document.getElementById("cardsContainer").classList.remove("d-none");
                 document.getElementById("buttonContainer").parentNode.removeChild(document.getElementById("buttonContainer"));
@@ -206,24 +206,44 @@ function loadEventsWhenReady(){
                     let houres = parseInt(time.substr(0, 2));
                     let minutes = parseInt(time.substr(3, 2));
                     let secondes = parseInt(time.substr(6, 2));
+                    let winMessage = "";
+                    let background;
+                    
+                    
+                    if(timeArray.length !== 0){
+                        let bestTim = (timeArray[0].houres * 60) + (timeArray[0].minutes * 60) + timeArray[0].secondes;
+                        let actualTime = (houres * 60) + (minutes * 60) + secondes;
 
-                    timeArray.push({
-                        "houres": houres,
-                        "minutes": minutes,
-                        "secondes": secondes
-                    });
-                    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------there will be time control
-                    if(timeArray){
+                        timeArray.push({
+                            "houres": houres,
+                            "minutes": minutes,
+                            "secondes": secondes
+                        });
 
+                        if(bestTim !== 0 && bestTim < actualTime){
+                            winMessage = `Bravo, tu as gagné en ${minutes} minutes et ${secondes} secondes. Mais votre meilleur score était de ${timeArray[0].minutes} minutes et ${timeArray[0].secondes} secondes. Une autre partie ?`;
+                            timeArray.pop();
+                        }else{
+                            winMessage = `Félicitations, c'est un nouveau record de ${minutes} minutes et ${secondes} secondes. Une autre partie ?`;
+                            background = "magic";//---------------------------------------------------------------------------------------------------------------------------------------------------------------------there will be time control
+                            timeArray.shift();
+                        }
+
+                    }else{
+                        timeArray.push({
+                            "houres": houres,
+                            "minutes": minutes,
+                            "secondes": secondes
+                        });
+                        winMessage = `Bravo, tu as gagné en ${minutes} minutes et ${secondes} secondes. Une autre partie ?`;
                     }
 
-                    alert(timeArray[0].secondes);
                     removeTimer(timeArticle);
                     
-                    let winMessage = `Félicitations, tu as gagné en ${minutes} minutes et ${secondes} secondes. Une autre partie ?`;
-                    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------there will be time control
+                    
+                    
                     //Make a display screen with text and button
-                    buttonWillAppear("restart", winMessage, parseInt(cardsContainer.offsetHeight));
+                    buttonWillAppear("restart", winMessage, parseInt(cardsContainer.offsetHeight), background);//---------------------------------------------------------------------------------------------------------------------------------------------------------------------there will be time control
                     //What happens if the player clicks restard
                     buttonAction.addEventListener("click", function() {
                         //Clean the older game container
@@ -369,21 +389,25 @@ function flipCardOff(element){
 }
 
 //function to manage button display mode
-function buttonWillAppear(textButton, textSuccess, heightSendt){
+function buttonWillAppear(textButton, textSuccess, heightSendt, image){
     //create HTML elements to make a section
     let sectionToReceiveButton = document.createElement("SECTION");
     sectionToReceiveButton.classList.add("row", "p-0", "m-0")
     sectionToReceiveButton.id = "buttonContainer";
     sectionToReceiveButton.style.height = heightSendt + "px";
+
     //create HTML elements to make a sub section
     let divRowToCenterElements = document.createElement("DIV");
-    divRowToCenterElements.classList.add("row", "col-12", "adjust-content-center", "align-items-center", "p-0", "m-0")
+    divRowToCenterElements.classList.add("row", "col-12", "adjust-content-center", "align-items-center", "p-0", "m-0", image)
+
     //create HTML elements to make a div to contain centered text and link
     let divToContainLink = document.createElement("DIV");
     divToContainLink.classList.add("text-center", "col-12");
+
     //create HTML elements to make a text over the link
     let textDisplayedOverLink = document.createElement('P');
     textDisplayedOverLink.innerText = textSuccess;
+
     //create HTML elements to make a link
     let link = document.createElement("A");
     link.classList.add("btn", "btn-memory", "fs-1", "py-sm-1rem", "px-sm-2rem");
