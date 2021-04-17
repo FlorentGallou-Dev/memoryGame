@@ -82,3 +82,10 @@ main{
   color: #BA84F3;
   font-weight: bold;
 }
+
+.magic{
+  background-image: url("../img/win.gif");
+  background-repeat: no-repeat;
+  background-position-y: top;
+  background-position-x: center;
+}
