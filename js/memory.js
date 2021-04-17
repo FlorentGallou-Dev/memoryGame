@@ -2,8 +2,11 @@
 //HTML element selectors
 let main = document.querySelector("main");
 let header = document.querySelector("header");
+let heightMain = 0;
 //selector of the cards container
 let cardsContainer = document.getElementById("cardsContainer");
+let buttonAction = document.getElementById("buttonAction");
+let timerDiv;
 
 //To set size of th main container and so the cards size we need to get viewports dimensions
 let viewportWidth = window.innerWidth;
@@ -41,8 +44,14 @@ const pairsFaces = [
         }
 ];
 
-/*~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~*/
+let flipCardInnerList = []; //Will get the list of the cards 
+let checkPairTab = []; //temp array to receive the pair image for control
+let numberOfPairsDone = 0; //To count the number of pair found
+let timer;//Prepare timer
+let timeArray = [];//Score array to compare at the end or each game.
 
+/*~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~*/
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------Function to set the game properly
 //Function that return a card in HTML element injecting back face picture set of pairs
 function createCardsElements(name, url){
     //Create HTML element to main card container
@@ -105,6 +114,7 @@ function randomSetCards(divToDistributeCards){
 
 //Resize html elements to display the cards
 function resizeGame(height, width){
+    let singleCardContainerList = document.getElementsByClassName("singleCardContainer");
     //get the viewport height without the header height after the page is fully loaded
     heightMain = height - parseInt(header.offsetHeight);
     //give the full height the main can take
@@ -124,27 +134,315 @@ function resizeGame(height, width){
     }
 }
 
+//resize elements when the page is loaded to fully get the header size and so calculate the main height properly
+function setsSizeToElementsWhenPageLoaded(){
+    //Fist check if page is already loaded in case of restart
+    if (document.readyState === "complete") {
+        resizeGame(viewportHeight, viewportWidth);
+    } else{//Else wait the page to fully load so we can get the true header height
+        window.addEventListener('load', function () {
+            resizeGame(viewportHeight, viewportWidth);
+            buttonWillAppear("play", "", heightMain, "noIma");
+            buttonAction.addEventListener("click", function() {
+                document.getElementById("cardsContainer").classList.remove("d-none");
+                document.getElementById("buttonContainer").parentNode.removeChild(document.getElementById("buttonContainer"));
+                let timeArticle = document.getElementById("timerDiv");
+                timerCreation(timeArticle);
+            });
+        });
+    }
+}
+
+//Function to set the attitude of the player with the cards during a game
+function loadEventsWhenReady(){
+
+    for(let flipCardInner of flipCardInnerList) {
+
+        let response = false;
+
+        //What happens if the mouse passes hover a card
+        flipCardInner.addEventListener("mouseenter", function() {
+            //If the card is not already fliped
+            if(getComputedStyle(this,null).getPropertyValue("transform") === "none" || getComputedStyle(this,null).getPropertyValue("transform") === "rotateY(0deg)"){
+                 hoverAnimationOn(this);
+            }
+        })
+    
+        //What happens if the mouse leaves a card
+        flipCardInner.addEventListener("mouseleave", function() {
+            //Manage the over elevation animation
+            hoverAnimationOff(this);
+    
+            //Check if response get the impossibleToPlay answer
+            if(response === "impossibleToPlay"){
+                console.log("Do nothing");
+            }//finaly this is what appends if response sends back the image of the card
+            else if(response !== false){
+                //add the card image in the pair array
+                checkPairTab.push(response);
+            }
+    
+            //Checks if there is two values in the pair array and if they match
+            if(checkPairTab.length === 2 && checkPairTab[0] === checkPairTab[1]){
+    
+                //Change the classes to mark the cards as good
+                for(let card of flipCardInnerList){
+                    if(card.getElementsByClassName("cardBack")[0].classList.contains("fliped")){
+                        card.getElementsByClassName("cardBack")[0].classList.remove("fliped");
+                        card.getElementsByClassName("cardBack")[0].classList.add("goodPair");
+                    }
+                }
+    
+                //Empty the pair array
+                checkPairTab = [];
+                //Add a point it the number of pair var
+                numberOfPairsDone++;
+                
+                //What happens when you win ???
+                if(numberOfPairsDone === 1){//---------------------------------------------------------------------------------------------------------------------------------------------------------------------there will be time control
+                    
+                    let timeArticle = document.getElementById("timerDiv");
+                    let time = document.getElementById("timer").innerText;
+                    let houres = parseInt(time.substr(0, 2));
+                    let minutes = parseInt(time.substr(3, 2));
+                    let secondes = parseInt(time.substr(6, 2));
+                    let winMessage = "";
+                    let background;
+                    
+                    
+                    if(timeArray.length !== 0){
+                        let bestTim = (timeArray[0].houres * 60) + (timeArray[0].minutes * 60) + timeArray[0].secondes;
+                        let actualTime = (houres * 60) + (minutes * 60) + secondes;
+
+                        timeArray.push({
+                            "houres": houres,
+                            "minutes": minutes,
+                            "secondes": secondes
+                        });
+
+                        if(bestTim !== 0 && bestTim < actualTime){
+                            winMessage = `Bravo, tu as gagné en ${minutes} minutes et ${secondes} secondes. Mais votre meilleur score était de ${timeArray[0].minutes} minutes et ${timeArray[0].secondes} secondes. Une autre partie ?`;
+                            timeArray.pop();
+                        }else{
+                            winMessage = `Félicitations, c'est un nouveau record de ${minutes} minutes et ${secondes} secondes. Une autre partie ?`;
+                            background = "magic";//---------------------------------------------------------------------------------------------------------------------------------------------------------------------there will be time control
+                            timeArray.shift();
+                        }
+
+                    }else{
+                        timeArray.push({
+                            "houres": houres,
+                            "minutes": minutes,
+                            "secondes": secondes
+                        });
+                        winMessage = `Bravo, tu as gagné en ${minutes} minutes et ${secondes} secondes. Une autre partie ?`;
+                    }
+
+                    removeTimer(timeArticle);
+                    
+                    
+                    
+                    //Make a display screen with text and button
+                    buttonWillAppear("restart", winMessage, parseInt(cardsContainer.offsetHeight), background);//---------------------------------------------------------------------------------------------------------------------------------------------------------------------there will be time control
+                    //What happens if the player clicks restard
+                    buttonAction.addEventListener("click", function() {
+                        //Clean the older game container
+                        cardsContainer.innerHTML = "";
+                        //Reset a new set of cards
+                        setTheGame(cardsContainer);
+                        //Show the game conainer again
+                        document.getElementById("cardsContainer").classList.remove("d-none");
+                        //Make the succes display screen desapear
+                        document.getElementById("buttonContainer").parentNode.removeChild(document.getElementById("buttonContainer"));
+
+                        timerCreation(timeArticle);
+                    });
+                }
+            }//Checks if there is two elements in the pair array but differents images.
+            else if(checkPairTab.length === 2 && checkPairTab[0] !== checkPairTab[1]){
+                //List of all flip-card-inner div
+                let flipCardInner = document.getElementsByClassName("flip-card-inner");
+                //Loop in the flip-card-inner div
+                for(let card of flipCardInner){
+                    //check if the cardBack div of the actual flip-card-inner div has fliped as class
+                    if(card.getElementsByClassName("cardBack")[0].classList.contains("fliped")){
+                        //Flip back the cards
+                        flipCardOff(card);
+                        //remove the fliped class from the cardBack div of the actual flip-card-inner div
+                        card.getElementsByClassName("cardBack")[0].classList.remove("fliped");
+                    }
+                    checkPairTab = [];
+                }
+            }
+            
+            //After all those checkings, reset the response so we can use it again
+            response = false;
+        })
+    
+        //What happens if the mouse clicks a card
+        flipCardInner.addEventListener("click", function() {
+            
+            if(!this.getElementsByClassName("cardBack")[0].classList.contains("fliped") && !this.getElementsByClassName("cardBack")[0].classList.contains("goodPair") ){
+                response = flipedCardVerification(this, checkPairTab);
+            }
+        })
+    }
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------Function to set the game properly
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------Function to set timer
+//Function to create the timer container and elements
+function createTimerHTMLElement(timerContainer){
+    let divContainer = document.createElement("DIV");
+    divContainer.classList.add("row", "col-12");
+    divContainer.id = "timerContainerChild";
+
+    let divTitle = document.createElement("DIV");
+    divTitle.classList.add("col-12");
+
+    let title = document.createElement("H3");
+    title.innerText = "Chrono";
+
+    let divTimer = document.createElement("DIV");
+    divTimer.classList.add("col-12");
+
+    let timer = document.createElement("p");
+    timer.id = "timer";
+
+    divTimer.appendChild(timer);
+    divTitle.appendChild(title);
+    divContainer.appendChild(divTitle);
+    divContainer.appendChild(divTimer);
+
+    timerContainer.appendChild(divContainer);
+}
+
+//function to manage the timer
+function timerOn(timerTextElement){
+    timer = new easytimer.Timer();
+    timer.start();
+
+    timer.addEventListener('secondsUpdated', function (e) {
+        timerTextElement.innerText = timer.getTimeValues().toString();
+    });
+}
+
+function timerCreation(div){
+    createTimerHTMLElement(div);
+    timerP = document.getElementById("timer");
+    timerOn(timerP);
+}
+
+function removeTimer(div){
+    div.removeChild(document.getElementById("timerContainerChild"));
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//Function to starta new game
+function setTheGame(divGameContainer){
+    //Set or Reset all the needed vars
+    flipCardInnerList = [];
+    checkPairTab = [];
+    numberOfPairsDone = 0;
+    randomSetCards(divGameContainer);
+    setsSizeToElementsWhenPageLoaded();
+    flipCardInnerList = document.getElementsByClassName("flip-card-inner");
+    loadEventsWhenReady();
+}
+
+//Function to animate the elevation up of the element we are over
+function hoverAnimationOn(element){
+    element.style.boxShadow = "0px 0px 10px 2px var(--grey)";
+}
+//Function to animate the elevation down of the element we are leaving
+function hoverAnimationOff(element){
+    element.style.boxShadow = "0px 0px 0px 0px transparent";
+}
+//Function to check if we can flip the card we have clicked on
+function flipedCardVerification(element, arrayOfClickedImages){
+    //Check if there is the is not 2 cards already fliped
+    if(arrayOfClickedImages.length < 2){
+        return flipCardOn(element);
+    } else{
+        //if 2 cards are already fliped or none
+        return "impossibleToPlay";
+    }
+}
+
+//Function to flip the actual card and marked it as fliped
+function flipCardOn(element){
+    //Get the cardBack element from the actual element
+    let cardInThisElement = element.getElementsByClassName("cardBack");
+    //Rotate the element
+    element.style.transform = "rotateY(180deg)";
+    //Add the fliped class to the cardBack
+    cardInThisElement[0].classList.add("fliped");
+    //return the face image name in class element
+    return cardInThisElement[0].classList[1];
+}
+
+//Function to flip back the actual card
+function flipCardOff(element){
+    element.style.transform = "rotateY(0deg)";
+}
+
+//function to manage button display mode
+function buttonWillAppear(textButton, textSuccess, heightSendt, image){
+    //create HTML elements to make a section
+    let sectionToReceiveButton = document.createElement("SECTION");
+    sectionToReceiveButton.classList.add("row", "p-0", "m-0")
+    sectionToReceiveButton.id = "buttonContainer";
+    sectionToReceiveButton.style.height = heightSendt + "px";
+
+    //create HTML elements to make a sub section
+    let divRowToCenterElements = document.createElement("DIV");
+    divRowToCenterElements.classList.add("row", "col-12", "adjust-content-center", "align-items-center", "p-0", "m-0", image)
+
+    //create HTML elements to make a div to contain centered text and link
+    let divToContainLink = document.createElement("DIV");
+    divToContainLink.classList.add("text-center", "col-12");
+
+    //create HTML elements to make a text over the link
+    let textDisplayedOverLink = document.createElement('P');
+    textDisplayedOverLink.innerText = textSuccess;
+
+    //create HTML elements to make a link
+    let link = document.createElement("A");
+    link.classList.add("btn", "btn-memory", "fs-1", "py-sm-1rem", "px-sm-2rem");
+    link.id = "buttonAction";
+    link.innerText = textButton.toUpperCase();
+
+    //Inject HTML elements as parent/child in the right order
+    divToContainLink.appendChild(textDisplayedOverLink);
+    divToContainLink.appendChild(link);
+    divRowToCenterElements.appendChild(divToContainLink);
+    sectionToReceiveButton.appendChild(divRowToCenterElements);
+
+    //Get the main div
+    let mainContainer = document.querySelector("main");
+    //Hide the cards section
+    cardsContainer.classList.add("d-none");
+    //Inject the button section in the main
+    mainContainer.appendChild(sectionToReceiveButton);
+    //set the section height
+    
+    //finaly get the a element in the var
+    buttonAction = document.getElementById("buttonAction");
+}
+
 /*~~~~~~~~~~~~~~~~~~~~~~~~~ EXECUTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-randomSetCards(cardsContainer);
+setTheGame(cardsContainer);
 
-let singleCardContainerList = document.getElementsByClassName("singleCardContainer");
-
-//Order the cards when the page is loaded to fully get the header size and so calculate the main height properly
-window.addEventListener('load', function () {
-    resizeGame(viewportHeight, viewportWidth);
-});
-
+//Resize the elements when fliping the device
 window.addEventListener("orientationchange", function(event) {
     window.location.reload();
     resizeGame(viewportWidth, viewportHeight);
 });
 
 /*Reste à faire :
-    - déclancher le hover en JS seulement sur les cartes non retournées,
-    - déclancher le retournement de la carte en JS si on clique dessus,
-    - déclancher un controle si deux cartes sont retournées + bloquer action du joueur,
-    - controler le nombre de paires trouvées pour fin du jeu,
-    - créer bouton commencer et restart,
     - créer timer.
 */ 
+
