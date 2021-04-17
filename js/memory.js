@@ -6,6 +6,7 @@ let heightMain = 0;
 //selector of the cards container
 let cardsContainer = document.getElementById("cardsContainer");
 let buttonAction = document.getElementById("buttonAction");
+let timerDiv;
 
 //To set size of th main container and so the cards size we need to get viewports dimensions
 let viewportWidth = window.innerWidth;
@@ -43,11 +44,14 @@ const pairsFaces = [
         }
 ];
 
+let flipCardInnerList = []; //Will get the list of the cards 
 let checkPairTab = []; //temp array to receive the pair image for control
 let numberOfPairsDone = 0; //To count the number of pair found
+let timer;//Prepare timer
+let timeArray = [];//Score array to compare at the end or each game.
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~*/
-
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------Function to set the game properly
 //Function that return a card in HTML element injecting back face picture set of pairs
 function createCardsElements(name, url){
     //Create HTML element to main card container
@@ -110,6 +114,7 @@ function randomSetCards(divToDistributeCards){
 
 //Resize html elements to display the cards
 function resizeGame(height, width){
+    let singleCardContainerList = document.getElementsByClassName("singleCardContainer");
     //get the viewport height without the header height after the page is fully loaded
     heightMain = height - parseInt(header.offsetHeight);
     //give the full height the main can take
@@ -128,6 +133,205 @@ function resizeGame(height, width){
         }
     }
 }
+
+//resize elements when the page is loaded to fully get the header size and so calculate the main height properly
+function setsSizeToElementsWhenPageLoaded(){
+    //Fist check if page is already loaded in case of restart
+    if (document.readyState === "complete") {
+        resizeGame(viewportHeight, viewportWidth);
+    } else{//Else wait the page to fully load so we can get the true header height
+        window.addEventListener('load', function () {
+            resizeGame(viewportHeight, viewportWidth);
+            buttonWillAppear("play", "", heightMain);
+            buttonAction.addEventListener("click", function() {
+                document.getElementById("cardsContainer").classList.remove("d-none");
+                document.getElementById("buttonContainer").parentNode.removeChild(document.getElementById("buttonContainer"));
+                let timeArticle = document.getElementById("timerDiv");
+                timerCreation(timeArticle);
+            });
+        });
+    }
+}
+
+//Function to set the attitude of the player with the cards during a game
+function loadEventsWhenReady(){
+
+    for(let flipCardInner of flipCardInnerList) {
+
+        let response = false;
+
+        //What happens if the mouse passes hover a card
+        flipCardInner.addEventListener("mouseenter", function() {
+            //If the card is not already fliped
+            if(getComputedStyle(this,null).getPropertyValue("transform") === "none" || getComputedStyle(this,null).getPropertyValue("transform") === "rotateY(0deg)"){
+                 hoverAnimationOn(this);
+            }
+        })
+    
+        //What happens if the mouse leaves a card
+        flipCardInner.addEventListener("mouseleave", function() {
+            //Manage the over elevation animation
+            hoverAnimationOff(this);
+    
+            //Check if response get the impossibleToPlay answer
+            if(response === "impossibleToPlay"){
+                console.log("Do nothing");
+            }//finaly this is what appends if response sends back the image of the card
+            else if(response !== false){
+                //add the card image in the pair array
+                checkPairTab.push(response);
+            }
+    
+            //Checks if there is two values in the pair array and if they match
+            if(checkPairTab.length === 2 && checkPairTab[0] === checkPairTab[1]){
+    
+                //Change the classes to mark the cards as good
+                for(let card of flipCardInnerList){
+                    if(card.getElementsByClassName("cardBack")[0].classList.contains("fliped")){
+                        card.getElementsByClassName("cardBack")[0].classList.remove("fliped");
+                        card.getElementsByClassName("cardBack")[0].classList.add("goodPair");
+                    }
+                }
+    
+                //Empty the pair array
+                checkPairTab = [];
+                //Add a point it the number of pair var
+                numberOfPairsDone++;
+                
+                //What happens when you win ???
+                if(numberOfPairsDone === 1){//---------------------------------------------------------------------------------------------------------------------------------------------------------------------there will be time control
+                    
+                    let timeArticle = document.getElementById("timerDiv");
+                    let time = document.getElementById("timer").innerText;
+                    let houres = parseInt(time.substr(0, 2));
+                    let minutes = parseInt(time.substr(3, 2));
+                    let secondes = parseInt(time.substr(6, 2));
+
+                    timeArray.push({
+                        "houres": houres,
+                        "minutes": minutes,
+                        "secondes": secondes
+                    });
+                    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------there will be time control
+                    if(timeArray){
+
+                    }
+
+                    alert(timeArray[0].secondes);
+                    removeTimer(timeArticle);
+                    
+                    let winMessage = `Félicitations, tu as gagné en ${minutes} minutes et ${secondes} secondes. Une autre partie ?`;
+                    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------there will be time control
+                    //Make a display screen with text and button
+                    buttonWillAppear("restart", winMessage, parseInt(cardsContainer.offsetHeight));
+                    //What happens if the player clicks restard
+                    buttonAction.addEventListener("click", function() {
+                        //Clean the older game container
+                        cardsContainer.innerHTML = "";
+                        //Reset a new set of cards
+                        setTheGame(cardsContainer);
+                        //Show the game conainer again
+                        document.getElementById("cardsContainer").classList.remove("d-none");
+                        //Make the succes display screen desapear
+                        document.getElementById("buttonContainer").parentNode.removeChild(document.getElementById("buttonContainer"));
+
+                        timerCreation(timeArticle);
+                    });
+                }
+            }//Checks if there is two elements in the pair array but differents images.
+            else if(checkPairTab.length === 2 && checkPairTab[0] !== checkPairTab[1]){
+                //List of all flip-card-inner div
+                let flipCardInner = document.getElementsByClassName("flip-card-inner");
+                //Loop in the flip-card-inner div
+                for(let card of flipCardInner){
+                    //check if the cardBack div of the actual flip-card-inner div has fliped as class
+                    if(card.getElementsByClassName("cardBack")[0].classList.contains("fliped")){
+                        //Flip back the cards
+                        flipCardOff(card);
+                        //remove the fliped class from the cardBack div of the actual flip-card-inner div
+                        card.getElementsByClassName("cardBack")[0].classList.remove("fliped");
+                    }
+                    checkPairTab = [];
+                }
+            }
+            
+            //After all those checkings, reset the response so we can use it again
+            response = false;
+        })
+    
+        //What happens if the mouse clicks a card
+        flipCardInner.addEventListener("click", function() {
+            
+            if(!this.getElementsByClassName("cardBack")[0].classList.contains("fliped") && !this.getElementsByClassName("cardBack")[0].classList.contains("goodPair") ){
+                response = flipedCardVerification(this, checkPairTab);
+            }
+        })
+    }
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------Function to set the game properly
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------Function to set timer
+//Function to create the timer container and elements
+function createTimerHTMLElement(timerContainer){
+    let divContainer = document.createElement("DIV");
+    divContainer.classList.add("row", "col-12");
+    divContainer.id = "timerContainerChild";
+
+    let divTitle = document.createElement("DIV");
+    divTitle.classList.add("col-12");
+
+    let title = document.createElement("H3");
+    title.innerText = "Chrono";
+
+    let divTimer = document.createElement("DIV");
+    divTimer.classList.add("col-12");
+
+    let timer = document.createElement("p");
+    timer.id = "timer";
+
+    divTimer.appendChild(timer);
+    divTitle.appendChild(title);
+    divContainer.appendChild(divTitle);
+    divContainer.appendChild(divTimer);
+
+    timerContainer.appendChild(divContainer);
+}
+
+//function to manage the timer
+function timerOn(timerTextElement){
+    timer = new easytimer.Timer();
+    timer.start();
+
+    timer.addEventListener('secondsUpdated', function (e) {
+        timerTextElement.innerText = timer.getTimeValues().toString();
+    });
+}
+
+function timerCreation(div){
+    createTimerHTMLElement(div);
+    timerP = document.getElementById("timer");
+    timerOn(timerP);
+}
+
+function removeTimer(div){
+    div.removeChild(document.getElementById("timerContainerChild"));
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//Function to starta new game
+function setTheGame(divGameContainer){
+    //Set or Reset all the needed vars
+    flipCardInnerList = [];
+    checkPairTab = [];
+    numberOfPairsDone = 0;
+    randomSetCards(divGameContainer);
+    setsSizeToElementsWhenPageLoaded();
+    flipCardInnerList = document.getElementsByClassName("flip-card-inner");
+    loadEventsWhenReady();
+}
+
 //Function to animate the elevation up of the element we are over
 function hoverAnimationOn(element){
     element.style.boxShadow = "0px 0px 10px 2px var(--grey)";
@@ -146,6 +350,7 @@ function flipedCardVerification(element, arrayOfClickedImages){
         return "impossibleToPlay";
     }
 }
+
 //Function to flip the actual card and marked it as fliped
 function flipCardOn(element){
     //Get the cardBack element from the actual element
@@ -157,6 +362,7 @@ function flipCardOn(element){
     //return the face image name in class element
     return cardInThisElement[0].classList[1];
 }
+
 //Function to flip back the actual card
 function flipCardOff(element){
     element.style.transform = "rotateY(0deg)";
@@ -180,7 +386,7 @@ function buttonWillAppear(textButton, textSuccess, heightSendt){
     textDisplayedOverLink.innerText = textSuccess;
     //create HTML elements to make a link
     let link = document.createElement("A");
-    link.classList.add("btn", "btn-success", "fs-1", "py-sm-1rem", "px-sm-2rem");
+    link.classList.add("btn", "btn-memory", "fs-1", "py-sm-1rem", "px-sm-2rem");
     link.id = "buttonAction";
     link.innerText = textButton.toUpperCase();
 
@@ -204,110 +410,15 @@ function buttonWillAppear(textButton, textSuccess, heightSendt){
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~ EXECUTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-randomSetCards(cardsContainer);
+setTheGame(cardsContainer);
 
-let singleCardContainerList = document.getElementsByClassName("singleCardContainer");
-
-//Order the cards when the page is loaded to fully get the header size and so calculate the main height properly
-window.addEventListener('load', function () {
-    resizeGame(viewportHeight, viewportWidth);
-    buttonWillAppear("play", "", heightMain);
-    buttonAction.addEventListener("click", function() {
-        document.getElementById("cardsContainer").classList.remove("d-none");
-        document.getElementById("buttonContainer").parentNode.removeChild(document.getElementById("buttonContainer"));
-    });
-});
-
+//Resize the elements when fliping the device
 window.addEventListener("orientationchange", function(event) {
     window.location.reload();
     resizeGame(viewportWidth, viewportHeight);
 });
 
-let flipCardInnerList = document.getElementsByClassName("flip-card-inner");
-
-for(let flipCardInner of flipCardInnerList) {
-    let response = false;
-    //What happens if the mouse passes hover a card
-    flipCardInner.addEventListener("mouseenter", function() {
-        //If the card is not already fliped
-        if(getComputedStyle(this,null).getPropertyValue("transform") === "none" || getComputedStyle(this,null).getPropertyValue("transform") === "rotateY(0deg)"){
-             hoverAnimationOn(this);
-        }
-    })
-
-    //What happens if the mouse leaves a card
-    flipCardInner.addEventListener("mouseleave", function() {
-        //Manage the over elevation animation
-        hoverAnimationOff(this);
-
-        //Check if response get the impossibleToPlay answer
-        if(response === "impossibleToPlay"){
-            console.log("Do nothing");
-        }//finaly this is what appends if response sends back the image of the card
-        else if(response !== false){
-            //add the card image in the pair array
-            checkPairTab.push(response);
-        }
-
-        //Checks if there is two values in the pair array and if they match
-        if(checkPairTab.length === 2 && checkPairTab[0] === checkPairTab[1]){
-
-            //Change the classes to mark the cards as good
-            for(let card of flipCardInnerList){
-                if(card.getElementsByClassName("cardBack")[0].classList.contains("fliped")){
-                    card.getElementsByClassName("cardBack")[0].classList.remove("fliped");
-                    card.getElementsByClassName("cardBack")[0].classList.add("goodPair");
-                }
-            }
-
-            //Empty the pair array
-            checkPairTab = [];
-            //Add a point it the number of pair var
-            numberOfPairsDone++;
-
-            if(numberOfPairsDone === 1){ //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                //get the viewport height without the header height after the page is fully loaded
-                buttonWillAppear("restart", "Félicitations, tu as gangé. Une autre partie ?", parseInt(cardsContainer.offsetHeight));
-                buttonAction.addEventListener("click", function() {
-                    cardsContainer.innerHTML = "";
-                    randomSetCards(cardsContainer);
-                    document.getElementById("cardsContainer").classList.remove("d-none");
-                    document.getElementById("buttonContainer").parentNode.removeChild(document.getElementById("buttonContainer"));
-                });
-            }
-        }//Checks if there is two elements in the pair array but differents images.
-        else if(checkPairTab.length === 2 && checkPairTab[0] !== checkPairTab[1]){
-            //List of all flip-card-inner div
-            let flipCardInner = document.getElementsByClassName("flip-card-inner");
-            //Loop in the flip-card-inner div
-            for(let card of flipCardInner){
-                //check if the cardBack div of the actual flip-card-inner div has fliped as class
-                if(card.getElementsByClassName("cardBack")[0].classList.contains("fliped")){
-                    //Flip back the cards
-                    flipCardOff(card);
-                    //remove the fliped class from the cardBack div of the actual flip-card-inner div
-                    card.getElementsByClassName("cardBack")[0].classList.remove("fliped");
-                }
-                checkPairTab = [];
-            }
-        }
-        
-        //After all those checkings, reset the response so we can use it again
-        response = false;
-    })
-
-    //What happens if the mouse clicks a card
-    flipCardInner.addEventListener("click", function() {
-        
-        if(!this.getElementsByClassName("cardBack")[0].classList.contains("fliped") && !this.getElementsByClassName("cardBack")[0].classList.contains("goodPair") ){
-            response = flipedCardVerification(this, checkPairTab);
-        }
-
-    })
-}
-
 /*Reste à faire :
-    - sizing des éléments après chargement de la page
     - créer timer.
 */ 
 
